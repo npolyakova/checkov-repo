@@ -38,6 +38,8 @@ jobs:
           name: checkov-report
           path: results.sarif
           retention-days: 7
+
+       - uses: actions/checkout@v4
       
       - name: Create issue
         uses: jayqi/failed-build-issue-action@v1
