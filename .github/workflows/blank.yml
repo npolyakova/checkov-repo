@@ -1,0 +1,57 @@
+name: checkov
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  scan:
+    permissions:
+      contents: read # for actions/checkout to fetch code
+      security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
+      actions: read # only required for a private repository by github/codeql-action/upload-sarif to get the Action run status
+      
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Checkov GitHub Action
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          # This will add both a CLI output to the console and create a results.sarif file
+          output_format: cli,sarif
+          output_file_path: console,results.sarif
+        
+      - name: Upload report     
+        uses: actions/upload-artifact@v4
+        with:
+          name: checkov-report
+          path: results.sarif
+          retention-days: 7
+  create-issue:
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create Issue
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const { data: issue } = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: "Обнаружена ошибка в workflow: ${{ github.event.workflow_run.name }}",
+              body: `
+                **Workflow завершился с ошибкой!**\n\n
+                - **Ссылка на запуск:** [${{ github.event.workflow_run.html_url }}](${{ github.event.workflow_run.html_url }})\n
+                - **Причина:** ${{ github.event.workflow_run.conclusion }}\n
+                - **Ветка:** ${{ github.event.workflow_run.head_branch }}\n\n
+                Пожалуйста, проверьте логи и устраните проблему.
+              `,
+              labels: ["bug", "automated"],
+              assignees: ["your-github-username"]  # Укажите свой username
+            });
+            console.log(`Issue создана: ${issue.html_url}`);
