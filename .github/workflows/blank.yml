@@ -18,6 +18,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          repository: 'octodemo/advanced-security-terraform'
+          ref: 'master'                   # Ветка, тег или коммит
+          path: 'external-repo'         # Опционально: каталог для клонирования
 
       - name: Checkov GitHub Action
         uses: bridgecrewio/checkov-action@v12
