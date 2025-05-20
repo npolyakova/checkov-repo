@@ -40,21 +40,6 @@ jobs:
           retention-days: 7
       
       - name: Create issue
-        if: steps.checkov.outcome == 'failure'
-        uses: actions/github-script@v6
+        uses: jayqi/failed-build-issue-action@v1
         with:
-            script: |
-              const { data: issue } = await github.rest.issues.create({
-              owner: npolyakova,
-              repo: checkov-repo,
-              title: "Обнаружена ошибка в workflow: ${{ github.event.workflow_run.name }}",
-              body: `
-                  **Workflow завершился с ошибкой!**\n\n
-                  - **Ссылка на запуск:** [${{ github.event.workflow_run.html_url }}](${{ github.event.workflow_run.html_url }})\n
-                  - **Причина:** ${{ github.event.workflow_run.conclusion }}\n
-                  - **Ветка:** ${{ github.event.workflow_run.head_branch }}\n\n
-                  Пожалуйста, проверьте логи и устраните проблему.
-                `,
-                labels: ["bug", "automated"],
-              });
-              console.log(`Issue создана: ${issue.html_url}`);
+          github-token: ${{ secrets.GITHUB_TOKEN }}
