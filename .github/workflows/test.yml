@@ -45,8 +45,8 @@ jobs:
         with:
             script: |
               const { data: issue } = await github.rest.issues.create({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
+              owner: npolyakova,
+              repo: checkov-repo,
               title: "Обнаружена ошибка в workflow: ${{ github.event.workflow_run.name }}",
               body: `
                   **Workflow завершился с ошибкой!**\n\n
